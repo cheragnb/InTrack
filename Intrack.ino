@@ -24,68 +24,59 @@ void setup() {
  
 void tcaselect(uint8_t i) {
   if (i > 7) return;
- 
   Wire.beginTransmission(TCAADDR);
   Wire.write(1 << i);
   Wire.endTransmission();  
 }
 
 void loop() {
-    Serial.println("Now 1"); //
-    tcaselect(0);
-    tcs.begin();
-    uint16_t clear, red, green, blue;
-
-    tcs.setInterrupt(false);      // turn on LED
-    
-    delay(60);  // takes 50ms to read 
-      
-    tcs.getRawData(&red, &green, &blue, &clear);
-    tcs.setInterrupt(true);  // turn off LED
-    
-    // Figure out some basic hex code for visualization
-    uint32_t sum = clear;
-    float r, g, b;
-    
-    r = red; r /= sum;
-    g = green; g /= sum;
-    b = blue; b /= sum;
-    r *= 256; g *= 256; b *= 256;
-    
-    sprintf(szInfo, "%d,%d,%d", (int)r, (int)g, (int)b);
-    
-    Spark.publish("colorinfo", szInfo);
-    
-    Serial.println(szInfo);
-    
-    delay(1000);
-    
-    Serial.println("Now 2"); //
-    tcaselect(1);
-    tcs.begin();
-
-    tcs.setInterrupt(false);      // turn on LED
-    
-    delay(60);  // takes 50ms to read 
-      
-    tcs.getRawData(&red, &green, &blue, &clear);
-    tcs.setInterrupt(true);  // turn off LED
-    
-    // Figure out some basic hex code for visualization
-     sum = clear;
-     
-    
-    r = red; r /= sum;
-    g = green; g /= sum;
-    b = blue; b /= sum;
-    r *= 256; g *= 256; b *= 256;
-    
-    sprintf(szInfo1, "%d,%d,%d", (int)r, (int)g, (int)b);
-    
-    Spark.publish("colorinfo", szInfo);
-    
-    Serial.println(szInfo1);
-    
-    delay(1000);
+    for (int i = 0 ; i < 1 ; i ++){
+       readRGB(i);
+    }
 }
 
+void readRGB(int i){
+    Serial.print("Reading  "); Serial.println(i); 
+
+    tcaselect(i);
+    tcs.begin();
+    uint16_t clear, red, green, blue;
+    delay(60);  // takes 50ms to read 
+   
+    tcs.getRawData(&red, &green, &blue, &clear);
+
+    uint32_t sum = clear;
+    float r, g, b;
+    r = red; r /= sum;
+    g = green; g /= sum;
+    b = blue; b /= sum;
+    r *= 256; g *= 256; b *= 256;
+    sprintf(szInfo, "%d,%d,%d", (int)r, (int)g, (int)b);
+    //Spark.publish("colorinfo", szInfo);
+   // Serial.println(szInfo);
+   Serial.println(colorSelect(r,g,b));
+    delay(200);
+}
+
+
+char colorSelect(int a, int b  , int c){
+    int max = -65530;
+    char color = 'x';
+    if (a > 100 && b > 100 && c > 100) {
+        return 'w'; 
+    }
+    if (a > max){ 
+        max = a;
+        color = 'r';    
+    }
+    if (b > max){ 
+        max = b;
+        color = 'g';    
+    }
+    if (c > max){ 
+        max = c;
+        color = 'b';    
+    }
+    
+    return color;
+}
